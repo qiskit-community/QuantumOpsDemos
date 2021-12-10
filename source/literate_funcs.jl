@@ -13,12 +13,12 @@ end
 """
     notebook(input_file)
 
-Create notebooks from `input_file`, applying needed filters and write output to
-the root folder of our typical Jupyter session.
+Create notebooks from `input_file`, applying needed filters and write
+to the output directory.
 """
 function notebook(input_file)
     output_dir = "../notebooks"
-    Literate.notebook(input_file, output_dir; preprocess=notebook_filter)
+    Literate.notebook(input_file, output_dir; preprocess=notebook_filter, mdstrings=true)
 end
 
 nothing;
