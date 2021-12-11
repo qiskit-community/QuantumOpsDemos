@@ -7,6 +7,7 @@ ENV["PYCALL_JL_RUNTIME_PYTHON"] = Sys.which("python")
 
 ## import all default symbols for interactive demo
 using QuantumOps
+using QuantumOps: AbstractOp
 using BenchmarkTools
 import LinearAlgebra
 import SparseArrays
@@ -29,10 +30,11 @@ print(Matrix.(Pauli.(0:3)))
 
 # `Pauli` is in this type hierarchy.
 
-Pauli <: AbstractPauli
+Pauli <: AbstractPauli <: AbstractOp
 #----------------------------------------------------------------------------
 
-# Only a very small amount of code depends on the internals of `Pauli`. Almost everything is coded against `AbstractPauli`. The developer almost never encounters the implementation of `Pauli`, and the user never does.
+# Only a very small amount of code depends on the internals of `Pauli`.
+# Almost everything is coded against `AbstractOp` and `AbstractPauli`. The developer almost never encounters the implementation of `Pauli`, and the user never does.
 # But, if you want, you can see it this way.
 
 dump(X)
