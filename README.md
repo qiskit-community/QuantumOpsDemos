@@ -4,7 +4,7 @@ This repository contains some notebooks for
 [QuantumOps.jl](https://github.ibm.com/John-Lapeyre/QuantumOps.jl)
 and [ElectronicStructure.jl](https://github.ibm.com/John-Lapeyre/ElectronicStructure.jl).
 
-* The notebooks are a mixture of demonstrations, documentation, etc.
+* The [notebooks](./notebooks) are a mixture of demonstrations, documentation, etc.
 
 * Most of the notebooks are generated from [text files](./source/) via [Literate.jl](https://github.com/fredrikekre/Literate.jl).
 

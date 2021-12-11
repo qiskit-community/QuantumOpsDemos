@@ -58,9 +58,9 @@ m = rand(2, 2) # Ordinary `Matrix`
 
 mY = Matrix(Y) # convert Y to a `Matrix`
 
-@btime Y * $m
+@btime Y * $m;
 #----------------------------------------------------------------------------
-@btime $mY * $m
+@btime $mY * $m;
 
 # Another example:
 
