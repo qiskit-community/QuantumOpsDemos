@@ -39,10 +39,11 @@ dump(X)
 #----------------------------------------------------------------------------
 
 
-# The notation `X[i, j]` calls `getindex(X, i, j)` which, for `AbstractPauli`, looks up the elements in stack allocated arrays. This is faster than indexing into a heap allocated (that is, every-day, dynamic) array:
+# The notation `X[i, j]` calls `getindex(X, i, j)` which, for `AbstractPauli`, looks up the elements in stack allocated arrays.
+# This is faster than indexing into a heap allocated (that is, every-day, dynamic) array:
 
-m = rand(2, 2)
-@btime $m[1, 1];
+m = rand(2, 2) # Ordinary `Matrix`
+@btime $m[1, 1];  # @btime is like %timeit. The "$" tests how it would perform in a compiled function
 #----------------------------------------------------------------------------
 
 @btime X[1, 1];  ## This includes time to look up what matrix corresponds to `X`
@@ -50,11 +51,16 @@ m = rand(2, 2)
 
 # Some linear algebra has been implemented.
 
-Y * rand(2, 2)
+# In Julia, multiplying two small matrices is faster than multiplying two numpy matrices is Python. The Python call includes an overhead.
+# Multiplying `QuantumOps.Paulis.Pauli` by a `Matrix` is even a bit faster because looking up elements of a `Pauli` is faster.
+
+mY = Matrix(Y) # convert Y to a `Matrix`
+
+@btime Y * $m
 #----------------------------------------------------------------------------
+@btime $mY * $m
 
-
-# These are more efficient than for heap-allocated arrays (except for BLAS), but still not the best, since we know the answers. It would be a good idea to hard code the result for `sparse` and return an copy. As an example I did implement methods for a few functions, for example, `ishermitian`, and `eigvals`:
+# Another example:
 
 @btime LinearAlgebra.eigvals(Z)
 #----------------------------------------------------------------------------
