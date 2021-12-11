@@ -28,9 +28,8 @@ print(Matrix.(Pauli.(0:3)))
 #----------------------------------------------------------------------------
 
 # `Pauli` is in this type hierarchy.
-# #### NOTE: I have removed `AbstractPauli <: AbstractMatrix` because of the danger mentioned below.
 
-Pauli <: AbstractPauli <: AbstractMatrix
+Pauli <: AbstractPauli
 #----------------------------------------------------------------------------
 
 # Only a very small amount of code depends on the internals of `Pauli`. Almost everything is coded against `AbstractPauli`. The developer almost never encounters the implementation of `Pauli`, and the user never does.
@@ -39,8 +38,6 @@ Pauli <: AbstractPauli <: AbstractMatrix
 dump(X)
 #----------------------------------------------------------------------------
 
-# #### `AbstractMatrix` danger
-# Making `Pauli` an `AbstractMatrix` caused a performance regression found in this notebook. This is very common. Inside some of your code, a fallback method is called rather than what you intended and it converts the object to a dense matrix. It's not clear that using `Pauli <: AbstractMatrix` is worth much in any case.
 
 # The notation `X[i, j]` calls `getindex(X, i, j)` which, for `AbstractPauli`, looks up the elements in stack allocated arrays. This is faster than indexing into a heap allocated (that is, every-day, dynamic) array:
 
@@ -51,20 +48,11 @@ m = rand(2, 2)
 @btime X[1, 1];  ## This includes time to look up what matrix corresponds to `X`
 #----------------------------------------------------------------------------
 
-# Above, I said that I implemented a method for `Matrix`. But this is only for efficiency. Because `Pauli <: AbstractMatrix`, the fallback method for `Matrix` that constructs the dense matrix using `getindex` would be called if I had not implemented a method.
-
-# Libraries such as `LinearAlgebra` and `SparseArrays` accept `X` because it is an `AbstractMatrix` and implements a bit of the interface, such as `getindex`. For example:
+# Some linear algebra has been implemented.
 
 Y * rand(2, 2)
 #----------------------------------------------------------------------------
 
-## The following fails because it is no longer true that AbstractPauli <: AbstractMatrix
-## LinearAlgebra.eigen(Y)
-#----------------------------------------------------------------------------
-
-## Same here. We would need to define a method
-## SparseArrays.sparse(X)
-#----------------------------------------------------------------------------
 
 # These are more efficient than for heap-allocated arrays (except for BLAS), but still not the best, since we know the answers. It would be a good idea to hard code the result for `sparse` and return an copy. As an example I did implement methods for a few functions, for example, `ishermitian`, and `eigvals`:
 
@@ -73,49 +61,11 @@ Y * rand(2, 2)
 
 # `20`ns is the time required to copy the array of eigenvalues.
 
-# Most importantly, I have implemented operations such as multiplication and Kroncker product rather than relying on fallback methods.
-#
-# Here is an example of multiplication.
-
-a = rand(Pauli, 1000); ## A sampler for Paui supports the entire `rand` interface.
-a_matrix = Matrix.(a); ## convert to heap-allocated matrices
-#----------------------------------------------------------------------------
-
-@btime reduce(*, $a)  ## `*` ignores the phase
-#----------------------------------------------------------------------------
-
-@btime reduce(*, $a_matrix)
-#----------------------------------------------------------------------------
-
 # ### `PauliTerm`
 #
-# `PauliTerm` represents a tensor product of Pauli operators (or a single one) and keeps track of a coefficient, including a phase. The following should give the same result as for `a_matrix` above, including the phase.
-
-PauliTerm("XX").ops
-#----------------------------------------------------------------------------
-
-a_terms = [PauliTerm([x]) for x in a]
-@btime reduce(*, $a_terms)
-#----------------------------------------------------------------------------
-
-# Note that this is 50-100 times slower than reducing an array of `Pauli`s. This is likely mostly because each `PauliTerm` and each reduction requires allocating an array, which is very expensive. This could likely be optimized a bit.
-#
-# We can easily get a bit of improvement by using stack-allocated vectors. This is easy because we have a parametric type system, and a lot of generic code:
-
-using StaticArrays
-x = rand(Pauli, 10);  ## dynamic vector
-xs = SVector{10, Pauli}(x); ## copy to static vector, the length is encoded in the type.
-tx = PauliTerm(x); ## convert to `PauliTerm`
-txs = PauliTerm(xs);
-
-@btime $tx * $tx;
-@btime $txs * $txs;
-#----------------------------------------------------------------------------
-
-# This is only a modest improvement, because the algorithms are not well suited to static vectors. Static vectors are also not efficient for large vectors. But, this illustrates parametric types.
+# `PauliTerm` represents a tensor product of Pauli operators (or a single one) and keeps track of a coefficient, including a phase.
 
 # ### Compare `PauliTerm` with qiskit
-
 
 using PyCall
 qi = pyimport("qiskit.quantum_info");
@@ -179,11 +129,6 @@ qiskit_time / julia_time
 n_qubits = 10
 n_terms = 10
 ps = PauliSum(rand(Pauli, (n_terms, n_qubits)), randn(n_terms))
-#----------------------------------------------------------------------------
-
-# It makes no mathematical sense, but you can check performance by reducing the terms with `*`. We can see that there is no additional overhead compared to multiplying `PauliTerm`s.
-
-@btime reduce(*, $ps)
 #----------------------------------------------------------------------------
 
 x = ps[5]
