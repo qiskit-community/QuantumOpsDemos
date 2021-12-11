@@ -17,7 +17,8 @@ Here is a way to set it up.
 ```shell
 shell> python -m venv ./venv # to create the virtual environment
 shell> source ./venv/bin/activate
-shell> export PYCALL_JL_RUNTIME_PYTHON=`which python`
+shell> pip install -r requirements.txt
+shell> export PYCALL_JL_RUNTIME_PYTHON=`which python` # tell PyCall which python to use
 ```
 The last two steps can be done instead via `source ./bin/activate_all.sh`.
 Then start julia
