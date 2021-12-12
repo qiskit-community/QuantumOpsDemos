@@ -167,6 +167,27 @@ x = copy(ps[1])
 
 # That seems a bit slow.
 
+# Multiplying Pauli Sums. Compare with Qiskit
+
+function get_julia_python_sums(n_qubits, n_terms)
+    xj = rand_op_sum(Pauli, n_qubits, n_terms)
+    yj = rand_op_sum(Pauli, n_qubits, n_terms)
+    xp = qi.SparsePauliOp(qi.random_pauli_list(n_qubits, n_terms))
+    yp = qi.SparsePauliOp(qi.random_pauli_list(n_qubits, n_terms))
+    return (xj, yj, xp, yp)
+end
+
+#-
+
+n_qubits = 10; n_terms = 100
+
+(xj, yj, xp, yp) = get_julia_python_sums(n_qubits, n_terms)
+julia_time = @belapsed $xj * $xj
+qiskit_time = @belapsed $xp.compose($yp)
+
+qiskit_time / julia_time
+
+
 # #### Pauli decomposition
 #
 # Construct the Pauli decomposition of a matrix.
