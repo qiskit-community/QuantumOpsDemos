@@ -167,7 +167,9 @@ x = copy(ps[1])
 
 # That seems a bit slow.
 
-# Multiplying Pauli Sums. Compare with Qiskit
+# ### Multiplying Pauli Sums. Compare with Qiskit
+
+# `qiskit.quantum_info` is in general more performant when multiplying Pauli sums.
 
 function get_julia_python_sums(n_qubits, n_terms)
     xj = rand_op_sum(Pauli, n_qubits, n_terms)
@@ -183,7 +185,17 @@ n_qubits = 10; n_terms = 100
 
 (xj, yj, xp, yp) = get_julia_python_sums(n_qubits, n_terms)
 julia_time = @belapsed $xj * $xj
-qiskit_time = @belapsed $xp.compose($yp)
+qiskit_time = @belapsed $xp.compose($yp).simplify()
+
+qiskit_time / julia_time
+
+#----------------------------------------------------------------------------
+
+n_qubits = 10; n_terms = 2000
+
+(xj, yj, xp, yp) = get_julia_python_sums(n_qubits, n_terms)
+julia_time = @elapsed xj * xj
+qiskit_time = @elapsed xp.compose(yp).simplify()
 
 qiskit_time / julia_time
 
