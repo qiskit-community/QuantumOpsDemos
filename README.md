@@ -1,4 +1,4 @@
-# QuantumDemos
+# QuantumOpsDemos
 
 This repository contains some notebooks for
 [QuantumOps.jl](https://github.ibm.com/John-Lapeyre/QuantumOps.jl)
